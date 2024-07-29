@@ -91,9 +91,9 @@ void build_response_html(char* response ,char* response_content){
     char base_res[] = "HTTP/1.1 200 OK\r\n"
              "Content-Type: text/html\r\n";
 
-    char content_size[] = "";
+
     char* content_size_header = (char*) malloc(22 + 10); // 22 = strlen(Content-Length:); 10: number and some extra save space
-    strcpy(content_size_header, content_size);
+
     sprintf(content_size_header, "Content-Length:  %llu\r\n", strlen(response_content));
     // build response headers
     strcat(response, base_res);
