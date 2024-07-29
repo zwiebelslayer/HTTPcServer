@@ -5,6 +5,7 @@
 #include "http_server.h"
 #include <stdint.h>
 #include <winsock2.h>
+#include <stdio.h>
 
 /* Which http request method */
 enum http_request_method{
@@ -79,6 +80,36 @@ struct http_request parse_incoming_request(char* buffer){
 }
 
 
+
+/*
+ * Build the response, where the content is a html "formatted" char (this is important for the response headers)
+ * @param: response_content: html file content
+ * @param: response: return value
+ */
+void build_response_html(char* response ,char* response_content){
+    // TODO: http status code should be changeable!
+    char base_res[] = "HTTP/1.1 200 OK\r\n"
+             "Content-Type: text/html\r\n";
+
+    char content_size[] = "";
+    char* content_size_header = (char*) malloc(22 + 10); // 22 = strlen(Content-Length:); 10: number and some extra save space
+    strcpy(content_size_header, content_size);
+    sprintf(content_size_header, "Content-Length:  %llu\r\n", strlen(response_content));
+    // build response headers
+    strcat(response, base_res);
+
+    strcat(response, content_size_header);
+    strcat(response, "Connection: close\r\n\r\n");
+    // append the html content"
+    strcat(response, response_content);
+
+
+
+    free(content_size_header);
+
+}
+
+
 /*
  * handles an incoming request.
  * "entrypoint" to the http server
@@ -107,11 +138,13 @@ void handle_client(SOCKET client_socket) {
     struct http_request incoming_request = parse_incoming_request(buffer);
 
 
+    char response[99999] = {0};
+    if(strcmp(incoming_request.request_route, "/") == 0 ){
+        build_response_html(response, "<html><body><h1>Hello, World!</h1></body></html>");
 
-    const char *response = "HTTP/1.1 200 OK\r\n"
-                           "Content-Type: text/html\r\n"
-                           "Connection: close\r\n\r\n"
-                           "<html><body><h1>Hello, World!</h1></body></html>";
+    }
+    build_response_html(response, "<html>404 not Found!</html>");
+
 
     send(client_socket, response, strlen(response), 0);
 
