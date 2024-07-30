@@ -7,6 +7,8 @@ add_executable(HTTPcServer main.c
         server.c
         server.h
         http_server.c
-        http_server.h)
+        http_server.h
+        ht.c
+        ht.h)
 
 target_link_libraries(HTTPcServer ws2_32)

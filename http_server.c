@@ -100,7 +100,7 @@ void build_response_html(char* response ,char* response_content){
 
     strcat(response, content_size_header);
     strcat(response, "Connection: close\r\n\r\n");
-    // append the html content"
+    // append the html content
     strcat(response, response_content);
 
 
