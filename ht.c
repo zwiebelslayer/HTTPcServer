@@ -20,21 +20,21 @@ typedef struct {
 struct ht {
     ht_entry *entries;  // holds the entries array
     size_t capacity;    // size of entries array
-    sizte_t length;     // current number of elements capacity >= length
+    size_t length;     // current number of elements capacity >= length
 };
 
 
 // create the hashtable
 struct ht *ht_create(void) {
     // alloc memory for the hashtable pointer
-    struct ht *hash_table = (struct ht *) malloc(sizeof(ht));
+    struct ht *hash_table = (struct ht *) malloc(sizeof(struct ht));
     if (hash_table == NULL) {
         return NULL; // ERROR
     }
     hash_table->length = 0;
     hash_table->capacity = INITIAL_CAPACITY;
     // alloc memeory for the entries array
-    ht_entry *array_for_entries = calloc(sizeof(ht_entry) * INITIAL_CAPACITY);
+    ht_entry *array_for_entries = calloc(hash_table->capacity,sizeof(ht_entry));
     if (array_for_entries == NULL) {
         free(hash_table);
         return NULL; // ERROR
