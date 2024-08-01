@@ -115,7 +115,7 @@ void build_response_html(char* response ,char* response_content){
  * "entrypoint" to the http server
  *
  */
-void handle_client(SOCKET client_socket) {
+void handle_client(SOCKET client_socket, struct ht* ht_route_dispatch) {
     char buffer[MAX_HTTP_RECEIVE_SIZE];   // buffer to hold the incoming request
     int bytes_received = recv(client_socket, buffer, MAX_HTTP_RECEIVE_SIZE, 0);
     if (bytes_received == SOCKET_ERROR) {
@@ -139,15 +139,30 @@ void handle_client(SOCKET client_socket) {
 
 
     char response[99999] = {0};
-    if(strcmp(incoming_request.request_route, "/") == 0 ){
-        build_response_html(response, "<html><body><h1>Hello, World!</h1></body></html>");
 
+    http_route_dispatch* route_dispatch_instructions = (http_route_dispatch*) ht_get(ht_route_dispatch, &(incoming_request.request_route));
+    //TODO: fix this code to send the response!
+    if(route_dispatch_instructions == NULL){
+        // ROUTE NOT FOUND -> serve 404
+        build_response_html(response, "<html>404 not Found!</html>");
     }
-    build_response_html(response, "<html>404 not Found!</html>");
+    else{
+        route_dispatch_instructions->callback_function(route_dispatch_instructions->callback_function_params);
+        // send(client_socket, response, strlen(response), 0);
+    }
 
 
-    send(client_socket, response, strlen(response), 0);
+
+    //
 
 }
 
 
+/*
+ * Reads a html file and serves its contents
+ */
+int serve_html_file(const char* html_file_path){
+    const char* filepath = (const char*)html_file_path;
+    printf("Serving file: %s\n", filepath);
+    return 0;
+}
