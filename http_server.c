@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <winsock2.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* Which http request method */
 enum http_request_method{
@@ -92,7 +93,7 @@ void build_response_html(char* response ,char* response_content){
              "Content-Type: text/html\r\n";
 
 
-    char* content_size_header = (char*) malloc(22 + 10); // 22 = strlen(Content-Length:); 10: number and some extra save space
+    char* content_size_header = (char*) calloc(22 + 10, sizeof(char)); // 22 = strlen(Content-Length:); 10: number and some extra save space
 
     sprintf(content_size_header, "Content-Length:  %llu\r\n", strlen(response_content));
     // build response headers
@@ -140,15 +141,17 @@ void handle_client(SOCKET client_socket, struct ht* ht_route_dispatch) {
 
     char response[99999] = {0};
 
-    http_route_dispatch* route_dispatch_instructions = (http_route_dispatch*) ht_get(ht_route_dispatch, &(incoming_request.request_route));
+    http_route_dispatch* route_dispatch_instructions = (http_route_dispatch*) ht_get(ht_route_dispatch,
+                                                                                     (const char *) &(incoming_request.request_route));
     //TODO: fix this code to send the response!
     if(route_dispatch_instructions == NULL){
         // ROUTE NOT FOUND -> serve 404
         build_response_html(response, "<html>404 not Found!</html>");
+        send(client_socket, response, strlen(response), 0);
     }
     else{
-        route_dispatch_instructions->callback_function(route_dispatch_instructions->callback_function_params);
-        // send(client_socket, response, strlen(response), 0);
+        route_dispatch_instructions->callback_function(client_socket, route_dispatch_instructions->callback_function_params);
+        //
     }
 
 
@@ -161,8 +164,28 @@ void handle_client(SOCKET client_socket, struct ht* ht_route_dispatch) {
 /*
  * Reads a html file and serves its contents
  */
-int serve_html_file(const char* html_file_path){
+int serve_html_file(SOCKET client_socket, const char* html_file_path){
     const char* filepath = (const char*)html_file_path;
-    printf("Serving file: %s\n", filepath);
+    FILE* file_handle = fopen(html_file_path, "r");
+    if(file_handle == NULL)
+    {
+        printf("Could not open HTML file check file path!");
+        return -1;
+    }
+    fseek(file_handle, 0, SEEK_END);
+    long file_size = ftell(file_handle);
+    fseek(file_handle, 0, SEEK_SET);
+    char* html_file_contents = calloc((file_size + 1), sizeof(char));
+    fread(html_file_contents, file_size, 1, file_handle);
+    /* alloc buffer for the file ocntents and the "preamble" http protocol stuff  */
+    char* response = calloc(file_size+1024, sizeof(char));
+    build_response_html(response, html_file_contents);
+
+
+    send(client_socket, response, strlen(response), 0);
+
+    free(html_file_contents);
+    free(response);
+
     return 0;
 }

@@ -10,7 +10,7 @@
 #define MAX_HTTP_RECEIVE_SIZE 8192   // every request which has more than this number of bytes is discarded! completely arbitrary number
 #define  MAX_REQUEST_ROUTE_BUFFER_SIZE 254
 
-typedef int (*callback_function_type)(void*);
+typedef int (*callback_function_type)(SOCKET, void*);
 
 typedef struct {
     const char* route;
@@ -21,7 +21,9 @@ typedef struct {
 
 void handle_client(SOCKET client_socket,struct ht* ht_route_dispatch);
 
-int serve_html_file(const char* html_file_path);
+int serve_html_file(SOCKET client_socket, const char* html_file_path);
+
+int serve_image(SOCKET client_socket, const char* image_file_path);
 
 
 struct http_request parse_incoming_request(char* buffer);
